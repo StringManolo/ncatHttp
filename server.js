@@ -1,6 +1,7 @@
 import * as std from "std";
 import * as os from "os";
-import URL from "./modules/internal/URL/url.mjs"; 
+import URL from "./modules/internal/URL/url.mjs";
+import getContentType from "./modules/internal/ContentType/contenttype.mjs";
 
 let DEBUG = arg => std.popen(`echo "${arg}" >> debug.log`, "r");
 
@@ -124,15 +125,23 @@ ${errorPage("Error - 400 - Bad Request", true, "400", "Bad Request")}
     let aux = std.open(
       absolutePublicPath + 
       (url.pathname === "/" ? "/index.html" : url.pathname) , "r");
-    
+   
+    let extension = (url.pathname === "/" ? "/index.html" : url.pathname).split(".");
+    DEBUG(`Extension1: ${extension}`);
+    extension = (extension.length > 1 ? "." + extension[extension.length-1] : null)
+   
+    DEBUG(`Extension2: ${extension}`); 
+    extension = getContentType(extension);
+
     if (aux) {
       response += `HTTP/1.1 200 OK
 ${staticHeaders}
+Content-Type: ${extension}
 
 ${method == "get" ? aux.readAsString() : ""}
 `;
     } else {
-      response += `HTTP/1.1 400 Not Found
+      response += `HTTP/1.1 404 Not Found
 ${staticHeaders}
 
 ${method == "get" ? errorPage("Error - 404 - Not Found", true, "404", "Resource Not Found") : ""}
