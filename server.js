@@ -101,6 +101,12 @@ ${request}`);*/
   if (method == "post") { 
     if (headers.contentLength) {
       body = std.in.readAsString(+headers.contentLength.split(":")[1]);
+      let bodyParams = body.split("&");
+      var bodyKeys = {};
+      for (let i in bodyParams) {
+        let tmp = bodyParams[i].split("=");
+	bodyKeys[tmp[0]] = (tmp[1] || {});
+      }
     }
   }
 
@@ -127,9 +133,41 @@ ${errorPage("Error - 400 - Bad Request", true, "400", "Bad Request")}
       (url.pathname === "/" ? "/index.html" : url.pathname) , "r");
    
     let extension = (url.pathname === "/" ? "/index.html" : url.pathname).split(".");
-    extension = getContentType((extension.length > 1 ? "." + extension[extension.length-1] : null));
+    extension = (extension.length > 1 ? "." + extension[extension.length-1] : null)
+    let ext = extension;
+    extension = getContentType(extension);
+
 
     if (aux) {
+      if (ext == ".djs") {
+        if(method == "post") {
+          let dinamicFile = std.open(absolutePublicPath +
+	      (url.pathname === "/" ? "/index.html" : url.pathname) , "r+");
+
+
+          var dfContent = dinamicFile.readAsString();
+	  let replaceString = `
+<script>
+this.$_POST = {};`
+          for(let i = 0; i < Object.keys(bodyKeys).length; ++i) {
+            replaceString += `
+$_POST.${Object.keys(bodyKeys)[i]}` +
+	        ` = "${bodyKeys[Object.keys(bodyKeys)[i]]}";`;
+	  }
+          replaceString += `
+</script>`;
+
+	  dfContent = dfContent.replace(/<head>/, "<head>" + replaceString);
+        }
+       console.log(`HTTP/1.1 200 OK
+${staticHeaders}
+Content-Type: text/html
+
+${dfContent}
+`);
+       throw "end post request";
+     }
+
       response += `HTTP/1.1 200 OK
 ${staticHeaders}
 Content-Type: ${extension}

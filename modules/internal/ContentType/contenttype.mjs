@@ -2,6 +2,7 @@ let getContentType = ext => {
   switch(ext) {
     case ".html":
     case ".htm":
+    case ".djs": // Special dinamic file.
       return "text/html";
 
     case ".js":
