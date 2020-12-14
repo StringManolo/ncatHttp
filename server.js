@@ -2,6 +2,7 @@ import * as std from "std";
 import * as os from "os";
 import URL from "./modules/internal/URL/url.mjs";
 import getContentType from "./modules/internal/ContentType/contenttype.mjs";
+import base64 from "./modules/internal/b64/b64.mjs";
 
 let DEBUG = arg => std.popen(`echo "${arg}" >> debug.log`, "r");
 
@@ -150,13 +151,24 @@ ${errorPage("Error - 400 - Bad Request", true, "400", "Bad Request")}
 <script>
 this.$_POST = {};`
           for(let i = 0; i < Object.keys(bodyKeys).length; ++i) {
-            replaceString += `
+	    let parsed = Object.keys(bodyKeys)[i];
+	    let validPropertyName;
+
+	    validPropertyName = (parsed.length > 0 ? true : false);
+	    for (let i in parsed) {
+              if(!/[a-zA-Z]/.test(parsed[i])) {
+                validPropertyName = false;
+	      }
+	    }
+	    
+	    if (validPropertyName) {
+              replaceString += `
 $_POST.${Object.keys(bodyKeys)[i]}` +
-	        ` = "${bodyKeys[Object.keys(bodyKeys)[i]]}";`;
-	  }
+	        ` = decodeURIComponent(atob("${base64("e", bodyKeys[Object.keys(bodyKeys)[i]])}"));`;
+	    }
           replaceString += `
 </script>`;
-
+	  }
 	  dfContent = dfContent.replace(/<head>/, "<head>" + replaceString);
         }
        console.log(`HTTP/1.1 200 OK
