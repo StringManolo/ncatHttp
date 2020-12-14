@@ -1,5 +1,6 @@
 import * as std from "std";
 import * as os from "os";
+import URL from "./modules/internal/URL/url.mjs"; 
 
 const address = "127.0.0.1";
 const port = 8080;
@@ -19,7 +20,8 @@ if (scriptArgs[1] == "start") {
     request += r + "\n";
   }
 
- /* console.log(`HTTP/1.1 200 ok
+ /* Log raw request here ?
+console.log(`HTTP/1.1 200 ok
 
 Request:
 ${request}`);*/
@@ -70,12 +72,23 @@ ${request}`);*/
     }
   }
 
-  
+  let url = new URL(`${(headers.host.split(":")[2] == 443 ? "https" : "http")}://${headers.host.split(":")[1].trim()}${path}`);
+
   console.log(`HTTP/1.1 200 ok
 
 Info:
 method ${method}
 path ${path}
+url {
+  url: ${url.url}
+  protocol: ${url.protocol}
+  host: ${url.host}
+  hostname: ${url.hostname}
+  port: ${url.port}
+  pathname: ${url.pathname}
+  search: ${url.search}
+  hash: ${url.hash}
+}
 protocol ${protocol}
 body ${body}
 headers ${JSON.stringify(headers)}

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>DEBUG/TEST FILE</title>
+</head>
+<body>
+<script type="module">
+import URL from "./url.mjs";
+
+let url = new URL("https://example.com/search?q=test1&test2#abc", "/search?q=test1&test2#abc");
+
+alert(`Everything:
+original: ${url.url}
+protocol: ${url.protocol}
+host: ${url.host}
+hostname: ${url.hostname}
+port: ${url.port}
+pathname: ${url.pathname}
+search: ${url.search}
+hash: ${url.hash}`);
+</script>
+</body>
+</html>
