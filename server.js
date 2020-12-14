@@ -121,32 +121,33 @@ ${errorPage("Error - 400 - Bad Request", true, "400", "Bad Request")}
   
 
 
-  if (method == "get" || method == "head") {
+  if (method == "get" || method == "head" || method == "post") {
     let aux = std.open(
       absolutePublicPath + 
       (url.pathname === "/" ? "/index.html" : url.pathname) , "r");
    
     let extension = (url.pathname === "/" ? "/index.html" : url.pathname).split(".");
-    DEBUG(`Extension1: ${extension}`);
-    extension = (extension.length > 1 ? "." + extension[extension.length-1] : null)
-   
-    DEBUG(`Extension2: ${extension}`); 
-    extension = getContentType(extension);
+    extension = getContentType((extension.length > 1 ? "." + extension[extension.length-1] : null));
 
     if (aux) {
       response += `HTTP/1.1 200 OK
 ${staticHeaders}
 Content-Type: ${extension}
 
-${method == "get" ? aux.readAsString() : ""}
+${method == "get" || method == "post" ? aux.readAsString() : ""}
 `;
     } else {
       response += `HTTP/1.1 404 Not Found
 ${staticHeaders}
 
-${method == "get" ? errorPage("Error - 404 - Not Found", true, "404", "Resource Not Found") : ""}
+${method == "get" || method == "post" ? errorPage("Error - 404 - Not Found", true, "404", "Resource Not Found") : ""}
 `;
     }
+  } else if (method == "options") {
+    response = `HTTP/1.1 200 OK
+Allow: OPTIONS, GET, HEAD, POST
+${staticHeaders}
+`;
   }
 
 
