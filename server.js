@@ -2,6 +2,8 @@ import * as std from "std";
 import * as os from "os";
 import URL from "./modules/internal/URL/url.mjs"; 
 
+let DEBUG = arg => std.popen(`echo "${arg}" >> debug.log`, "r");
+
 const address = "127.0.0.1";
 const port = 8080;
 const publicPath = "/public";
@@ -45,6 +47,9 @@ if (scriptArgs[1] == "start") {
 
     request += r + "\n";
   }
+
+  
+DEBUG(request);
 
  /* Log raw request here ?
 console.log(`HTTP/1.1 200 ok
@@ -98,15 +103,24 @@ ${request}`);*/
     }
   }
 
-  let url = new URL(`${(headers.host.split(":")[2] == 443 ? "https" : "http")}://${headers.host.split(":")[1].trim()}${path}`);
+
+  let response = "";
+  if (!headers.host) {
+    console.log(`HTTP/1.1 400 Bad Request
+${staticHeaders}
+
+${errorPage("Error - 400 - Bad Request", true, "400", "Bad Request")}
+`);
+    throw "Bad Request"; 
+  }
+
+
+  let url = new URL(`${((headers.host.split(":").length > 2 ? headers.host.split(":")[2] : null) == 443 ? "https" : "http")}://${headers.host.split(":")[1].trim()}${path}`);
 
   
 
 
-  /* RESPONSE: */
-  let response = "";
-
-  if (method == "get") {
+  if (method == "get" || method == "head") {
     let aux = std.open(
       absolutePublicPath + 
       (url.pathname === "/" ? "/index.html" : url.pathname) , "r");
@@ -115,13 +129,13 @@ ${request}`);*/
       response += `HTTP/1.1 200 OK
 ${staticHeaders}
 
-${aux.readAsString()}
+${method == "get" ? aux.readAsString() : ""}
 `;
     } else {
       response += `HTTP/1.1 400 Not Found
 ${staticHeaders}
 
-${errorPage("Error - 404 - Not Found", true, "404", "Resource Not Found")}
+${method == "get" ? errorPage("Error - 404 - Not Found", true, "404", "Resource Not Found") : ""}
 `;
     }
   }
